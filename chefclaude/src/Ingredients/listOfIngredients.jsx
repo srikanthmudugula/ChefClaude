@@ -4,40 +4,35 @@ function IngredientsList(props) {
   const{recipeShown,setRecipeShown,newIngredients, setLoading} = useIngredients();
 
   async function getRecipe() {
-    setLoading(true)
-    try{
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-      "HTTP-Referer": import.meta.env.VITE_SITE_URL,
-      "X-Title": import.meta.env.VITE_SITE_NAME,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "mistralai/mistral-small-3.2-24b-instruct:free",
-      messages: [
-        {
-          role: "user",
-          content: `feeling hungry! using these ${newIngredients} ingredients suggest me a recipe with the process and sequence in order of making that recipe.
-          just give the recipe don't ask for any questions like need any variations etc`,
-        },
-      ],
-    }),
-  });
+  setLoading(true);
+  try {
+    const response = await fetch("/api/getRecipe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "mistralai/mistral-small-3.2-24b-instruct:free",
+        messages: [
+          {
+            role: "user",
+            content: `feeling hungry! using these ${newIngredients} ingredients suggest me a recipe with the process and sequence in order of making that recipe.
+            just give the recipe don't ask for any questions like need any variations etc`,
+          },
+        ],
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Error in getting the recipe");
-  }
-  const data = await response.json();
+    if (!response.ok) throw new Error("Error in getting the recipe");
+
+    const data = await response.json();
     const recipeMarkdown = data.choices[0].message.content;
     setRecipeShown(recipeMarkdown);
-  }catch(err){
-  console.log(err)
-}finally{
-  setLoading(false);
-}
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
   }
+}
+
   return (
     <section className="p-4">
       <h2 className="font-bold text-xl mb-3">Ingredients on hand:</h2>
